@@ -410,7 +410,7 @@ figure.rv > img{border-radius:14px}
 <div style="display: flex; flex-direction: column; gap: 24px">
 <p class="eyebrow">Fale com a Cazzar</p>
 <h2 class="h2">Deixe seu contato e <em>a gente te chama.</em></h2>
-<p class="sub">Leva menos de 1 minuto. Assim que você enviar, abrimos o WhatsApp para um corretor da Cazzar continuar o atendimento.</p>
+<p class="sub">Leva menos de 1 minuto. Um corretor da Cazzar entra em contato com você pelo WhatsApp.</p>
 <div id="cz-parceria" hidden style="align-self: flex-start; display: inline-flex; align-items: center; gap: 12px; background: #0B1F3B; color: #F4F1EA; padding: 14px 20px; border-radius: 16px">
 <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D6A85B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
 <span style="font-size: 15px">Você chegou pela parceria com <strong id="cz-parceria-nome" style="color: #DCC087"></strong></span>
@@ -451,9 +451,14 @@ figure.rv > img{border-radius:14px}
 <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position: absolute; left: -9999px; width: 1px; height: 1px">
 
 <p id="cz-erro" role="alert" hidden style="margin: 0; color: #B3261E; font-size: 14px"></p>
-<button type="submit" class="btn" style="justify-content: center; border: 0; cursor: pointer; font-family: inherit; min-height: 56px">Enviar e falar no WhatsApp</button>
+<button type="submit" class="btn" style="justify-content: center; border: 0; cursor: pointer; font-family: inherit; min-height: 56px">Enviar cadastro</button>
 <p style="margin: 0; font-size: 12px; color: #6B7280; line-height: 1.5">Seus dados são usados apenas para o atendimento da CAZZAR IMÓVEIS.</p>
 </form>
+<div id="cz-ok" hidden role="status" style="background: #FFFFFF; border-radius: 26px; padding: clamp(32px, 4vw, 48px); box-shadow: 0 40px 80px -50px rgba(11,31,59,0.45); border: 1px solid #EAE3D4; text-align: center; flex-direction: column; align-items: center; gap: 16px">
+<span style="width: 64px; height: 64px; border-radius: 50%; background: #0B1F3B; display: inline-flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#D6A85B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span>
+<h3 style="margin: 0; font-family: Montserrat, sans-serif; font-weight: 800; font-size: 26px; color: #0B1F3B">Cadastro recebido!</h3>
+<p style="margin: 0; font-size: 16px; color: #3D4C67; max-width: 380px">Obrigado, <span id="cz-ok-nome"></span>. Um corretor da Cazzar vai entrar em contato com você pelo WhatsApp em breve.</p>
+</div>
 </div>
 </section>
 
@@ -498,7 +503,7 @@ figure.rv > img{border-radius:14px}
 .cz-pill input:checked + span{background:#0B1F3B;border-color:#0B1F3B;color:#F4F1EA;box-shadow:inset 0 -3px 0 #D6A85B}
 .cz-pill input:focus-visible + span{outline:2px solid #D6A85B;outline-offset:3px}
 #cz-form [hidden]{display:none !important}
-#cz-parceria[hidden]{display:none !important}
+#cz-parceria[hidden],#cz-ok[hidden],#cz-form[hidden]{display:none !important}
 #cz-form button[disabled]{opacity:.7;cursor:wait}
 </style>
 <script>
@@ -587,16 +592,18 @@ figure.rv > img{border-radius:14px}
       if (det.length) msg += ' (' + det.join(', ') + ')';
     }
     msg += '.';
-    var wa = 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(msg);
-
+    
     var btn = form.querySelector('button[type="submit"]'); btn.disabled = true; btn.textContent = 'Enviando...';
-    var vaiProWhats = function(){ location.href = wa; };
-    if (!FORMSPREE_ID || FORMSPREE_ID === 'SEU_ID_AQUI') { vaiProWhats(); return; }
     var dados = new FormData(form);
     dados.set('pagina', location.href);
+    dados.set('mensagem_resumo', msg);
     fetch('https://formspree.io/f/' + FORMSPREE_ID, { method: 'POST', body: dados, headers: { 'Accept': 'application/json' } })
-      .catch(function(){}).then(vaiProWhats);
-    setTimeout(vaiProWhats, 4000);
+      .then(function(r){ if(!r.ok) throw new Error('falha'); 
+        form.hidden = true; document.getElementById('cz-ok-nome').textContent = nome;
+        var ok = document.getElementById('cz-ok'); ok.hidden = false; ok.style.display = 'flex';
+        ok.scrollIntoView({behavior:'smooth', block:'center'}); })
+      .catch(function(){ btn.disabled = false; btn.textContent = 'Enviar cadastro';
+        erro.textContent = 'Não foi possível enviar agora. Verifique sua conexão e tente de novo.'; erro.hidden = false; });
   });
 })();
 </script>
